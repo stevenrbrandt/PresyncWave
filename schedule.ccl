@@ -1,0 +1,33 @@
+# Schedule definitions for thorn PresyncWave
+storage: rhs_vars[3], evo_vars[3], evo_divs
+
+schedule presync_wave_init at CCTK_INITIAL
+{
+  LANG: C
+  WRITES: PresyncWave::psi(Everywhere), PresyncWave::phi(Everywhere)
+} "initial condition"
+
+schedule presync_wave_evolve in MoL_CalcRHS
+{
+  READS: PresyncWave::psi(Interior), PresyncWave::phi(Interior)
+  READS: PresyncWave::dxx_psi(Interior)
+  READS: PresyncWave::dyy_psi(Interior)
+  READS: PresyncWave::dzz_psi(Interior)
+  WRITES: PresyncWave::psi_rhs(Interior), PresyncWave::phi(Interior)
+  LANG: C
+} "Evolve loop"
+
+schedule presync_derivatives in MoL_CalcRHS after presync_wave_evolve
+{
+  READS: PresyncWave::psi(Everywhere)
+  WRITES: PresyncWave::dxx_psi(Interior)
+  WRITES: PresyncWave::dyy_psi(Interior)
+  WRITES: PresyncWave::dzz_psi(Interior)
+  LANG: C
+} "Compute derivatives"
+
+schedule presync_registervars in MoL_Register
+{
+  LANG: C
+  OPTIONS: META
+}"Register funwave variables for MoL"
