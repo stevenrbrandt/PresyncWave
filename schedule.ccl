@@ -1,6 +1,11 @@
 # Schedule definitions for thorn PresyncWave
 storage: rhs_vars[3], evo_vars[3], evo_divs
 
+schedule presync_registerboundary at CCTK_INITIAL
+{
+  LANG: C
+} "register boundaries"
+
 schedule presync_wave_init at CCTK_INITIAL
 {
   LANG: C
