@@ -39,7 +39,8 @@ void fun_bf(
   _DECLARE_CCTK_ARGUMENTS;
   
   std::cout << "fun: num_vars=" << num_vars << std::endl;
-  for(int var_index=0;var_index<num_vars;var_index++) {
+  for(int vi=0;vi<num_vars;vi++) {
+    int var_index = var_indices[vi];
     for(int face=0;face<6;face++) {
 
       if(!cctk_bbox[face])
@@ -54,15 +55,16 @@ void fun_bf(
       }
 
       int zero = CCTK_GFINDEX3D(cctkGH,0,0,0);
+      int max_index = CCTK_GFINDEX3D(cctkGH,cctk_lsh[0],cctk_lsh[1],cctk_lsh[2]);
       int lo[3], hi[3], del[3], one[3];
       for(int d=0;d<3;d++) {
         if(d == dim) {
           if(face % 2 == 1) {
-            lo[d] = cctk_lsh[d]-widths[d];
+            lo[d] = cctk_lsh[d]-widths[vi];
             hi[d] = cctk_lsh[d];
           } else {
             lo[d] = 0;
-            hi[d] = widths[d];
+            hi[d] = widths[vi];
           }
         } else {
           lo[d] = 0;
@@ -77,7 +79,15 @@ void fun_bf(
       // This ought to be true
       assert(del[0] == 1);
 
-      CCTK_REAL *var = (CCTK_REAL *)CCTK_VarDataPtrI(cctkGH,var_index,0);
+      CCTK_REAL *var = (CCTK_REAL *)CCTK_VarDataPtrI(cctkGH,0,var_index);
+      //assert(var != 0);
+      if(var == 0) {
+        std::cout << "NOT updating boundary for " << CCTK_FullName(var_index) << "(" << var_index << ") NULL PTR!" << std::endl;
+        abort();
+        return;
+      } else {
+        std::cout << "updating boundary for " << CCTK_FullName(var_index) << "(" << var_index << "), face=" << face << std::endl;
+      }
 
       int ind[3];
       for(ind[2]=lo[2];ind[2] < hi[2];ind[2]++) {
@@ -88,11 +98,19 @@ void fun_bf(
 
             int ci = cc;
             if(face % 2 == 1) {
-              ci += (2*lo[dim]-ind[dim])*del[dim]; 
+              ci += 2*(lo[dim]-ind[dim])*del[dim]; 
             } else {
-              ci += (2*hi[dim]-ind[dim])*del[dim];
+              ci += 2*(hi[dim]-ind[dim])*del[dim];
+              assert(lo[dim]==0);
             }
 
+            assert(cc < max_index);
+            if(ci >= max_index || ci < zero) {
+              std::cout << "dim=" << dim << " w=" << widths[vi] << " ind=" << ind[dim] << " lo=" << lo[dim] << " hi=" << hi[dim] << " up=" << cctk_lsh[dim] << std::endl;
+            }
+            assert(ci < max_index);
+            assert(cc >= zero);
+            assert(ci >= zero);
             var[cc] = var[ci]; // symmetry boundary condition
           }
         }
@@ -108,16 +126,19 @@ void presync_registerboundary(CCTK_ARGUMENTS)
   DECLARE_CCTK_PARAMETERS
   CCTK_INT ierr = 0, group, rhs;
 
+  std::cout << "Register Boundary Conditions" << std::endl;
+
   Carpet_RegisterPhysicalBC(cctkGH,fun_bf,"symmetry",1);
 
   Carpet_SelectGroupForBC(cctkGH,
-    CCTK_ALL_FACES, 3,
+    CCTK_ALL_FACES, 1,
    -1 /* no table */, "PresyncWave::rhs_vars",
    "symmetry");
 
   Carpet_SelectGroupForBC(cctkGH,
-    CCTK_ALL_FACES, 3,
+    CCTK_ALL_FACES, 1,
    -1 /* no table */, "PresyncWave::evo_vars",
    "symmetry");
 
+  std::cout << "Register Boundary Conditions 2" << std::endl;
 }

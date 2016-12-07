@@ -10,13 +10,26 @@ extern "C" void Carpet_ApplyPhysicalBCs(const cGH *cctkGH);
 #define sq(X) (X)*(X)
 
 extern "C"
+void ready_step(CCTK_ARGUMENTS)
+{
+  DECLARE_CCTK_ARGUMENTS;
+  for(int k=0;k<cctk_lsh[2];k++) {
+    for(int j=0;j<cctk_lsh[1];j++) {
+      for(int i=0;i<cctk_lsh[0];i++) {
+        int cc = CCTK_GFINDEX3D(cctkGH,i,j,k);
+        psi[cc] = psi_p[cc];
+        phi[cc] = phi_p[cc];
+      }
+    }
+  }
+}
+
+extern "C"
 void presync_wave_init(CCTK_ARGUMENTS)
 {
   DECLARE_CCTK_ARGUMENTS
   DECLARE_CCTK_PARAMETERS
   std::cout << "wave_init" << std::endl;
-  Boundary_ApplyPhysicalBCs(cctkGH);
-  Carpet_ApplyPhysicalBCs(cctkGH);
 
   const int imin0=cctk_nghostzones[0];
   const int imin1=cctk_nghostzones[1];
