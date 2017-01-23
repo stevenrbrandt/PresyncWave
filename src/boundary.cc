@@ -139,6 +139,4 @@ void presync_registerboundary(CCTK_ARGUMENTS)
     CCTK_ALL_FACES, 1,
    -1 /* no table */, "PresyncWave::evo_vars",
    "symmetry");
-
-  std::cout << "Register Boundary Conditions 2" << std::endl;
 }

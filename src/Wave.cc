@@ -17,8 +17,8 @@ void ready_step(CCTK_ARGUMENTS)
     for(int j=0;j<cctk_lsh[1];j++) {
       for(int i=0;i<cctk_lsh[0];i++) {
         int cc = CCTK_GFINDEX3D(cctkGH,i,j,k);
-        psi[cc] = psi_p[cc];
-        phi[cc] = phi_p[cc];
+        //psi[cc] = psi_p[cc];
+        //phi[cc] = phi_p[cc];
       }
     }
   }
@@ -29,14 +29,13 @@ void presync_wave_init(CCTK_ARGUMENTS)
 {
   DECLARE_CCTK_ARGUMENTS
   DECLARE_CCTK_PARAMETERS
-  std::cout << "wave_init" << std::endl;
 
-  const int imin0=cctk_nghostzones[0];
-  const int imin1=cctk_nghostzones[1];
-  const int imin2=cctk_nghostzones[2];
-  const int imax0=cctk_lsh[0] - cctk_nghostzones[0];
-  const int imax1=cctk_lsh[1] - cctk_nghostzones[1];
-  const int imax2=cctk_lsh[2] - cctk_nghostzones[2];
+  const int imin0=0;//cctk_nghostzones[0];
+  const int imin1=0;//cctk_nghostzones[1];
+  const int imin2=0;//cctk_nghostzones[2];
+  const int imax0=cctk_lsh[0];// - cctk_nghostzones[0];
+  const int imax1=cctk_lsh[1];// - cctk_nghostzones[1];
+  const int imax2=cctk_lsh[2];// - cctk_nghostzones[2];
   const int zero = CCTK_GFINDEX3D(cctkGH,0,0,0);
   const int di = CCTK_GFINDEX3D(cctkGH,1,0,0) - zero;
   const int dj = CCTK_GFINDEX3D(cctkGH,0,1,0) - zero;
@@ -60,7 +59,6 @@ void presync_wave_evolve(CCTK_ARGUMENTS)
 {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
-  std::cout << "Evolve" << std::endl;
 
   const int imin0=cctk_nghostzones[0];
   const int imin1=cctk_nghostzones[1];
@@ -89,7 +87,6 @@ void presync_derivatives(CCTK_ARGUMENTS)
 {
   DECLARE_CCTK_ARGUMENTS;
   DECLARE_CCTK_PARAMETERS;
-  std::cout << "derivatives" << std::endl;
 
   const int imin0=cctk_nghostzones[0];
   const int imin1=cctk_nghostzones[1];
@@ -101,6 +98,7 @@ void presync_derivatives(CCTK_ARGUMENTS)
   const int di = CCTK_GFINDEX3D(cctkGH,1,0,0) - zero;
   const int dj = CCTK_GFINDEX3D(cctkGH,0,1,0) - zero;
   const int dk = CCTK_GFINDEX3D(cctkGH,0,0,1) - zero;
+  assert(!std::isnan(psi[zero]));
   #pragma omp parallel
   CCTK_LOOP3(calc_presync_derivs,
     i,j,k, imin0,imin1,imin2, imax0,imax1,imax2,

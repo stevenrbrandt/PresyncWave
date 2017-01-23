@@ -6,11 +6,17 @@ schedule presync_registerboundary at CCTK_INITIAL
   LANG: C
 } "register boundaries"
 
-schedule ready_step at CCTK_PRESTEP
+# This should move to MoL
+schedule UpdateValidForMoLInitialCopy in MoL_Evolution after MoL_InitialCopy before MoL_Step
 {
   LANG: C
-  WRITES: PresyncWave::psi(Interior), PresyncWave::phi(Interior)
-} "ready"
+} "Automatically update valid regions based on MoL"
+
+# This should move to MoL
+schedule UpdateValidForMoLAdd in MoL_Step after MoL_Add
+{
+  LANG: C
+} "Automatically update valid regions based on MoL"
 
 schedule presync_wave_init at CCTK_POSTINITIAL
 {
