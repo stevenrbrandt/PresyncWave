@@ -1,0 +1,18 @@
+ActiveThorns = "PresyncWave Boundary"
+ActiveThorns = "CoordBase Carpet CartGrid3D MoL SymBase"
+ActiveThorns = "CarpetIOASCII"
+cactus::cctk_itlast = 3
+
+Carpet::ghost_size_x = 1
+Carpet::ghost_size_y = 1
+Carpet::ghost_size_z = 1
+
+IO::out_dir = $parfile
+
+IOASCII::out2D_every = 100
+IOASCII::out2D_xyplane_z = 0
+IOASCII::out2D_vars = "
+  PresyncWave::psi
+"
+CarpetIOASCII::compact_format = true
+IOASCII::output_ghost_points = "no"
