@@ -4,6 +4,14 @@ Maintainer(s): Steven R. Brandt <sbrandt@cct.lsu.edu>
 Licence      : LGPL
 --------------------------------------------------------------------------
 
+0. Checkout out and running the wave toy code
+
+Checkout out:
+GetComponents --parallel https://raw.githubusercontent.com/stevenrbrandt/PresyncWave/master/thorns.th
+
+Running:
+./exe/cactus_sim arrangements/PresyncWave/PresyncWave/pars/pre.par
+
 1. Purpose
 
 The PresyncWave thorn was created as an initial test of the presync branch of
