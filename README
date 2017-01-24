@@ -6,4 +6,126 @@ Licence      : LGPL
 
 1. Purpose
 
-not documented
+The PresyncWave thorn was created as an initial test of the presync branch of
+Carpet. The goal of the presync branch is to use read/write directives to:
+
+(1) remove the need for SYNC statements in the schedule.ccl file. They can now
+be applied lazily, as needed.
+
+(2) remove the need for determining when boundary conditions need to be
+applied. They are registered once per grid variable during initialization and
+applied automatically as the evolution continues.
+
+This scheme is based on a new conception of the read/write directives feature
+in Cactus.
+
+As before, read/write directives are added per scheduled item as follows:
+
+  schedule presync_derivatives in MoL_CalcRHS before presync_wave_evolve
+  {
+    READS: PresyncWave::psi(Everywhere)
+    WRITES: PresyncWave::dxx_psi(Interior)
+    WRITES: PresyncWave::dyy_psi(Interior)
+    WRITES: PresyncWave::dzz_psi(Interior)
+    LANG: C
+  } "Compute derivatives"
+
+What is new is that there are now only two valid values for the region
+statement. It is either Interior, or Everywhere.
+
+Internally, Cactus knows about an Exterior region, which is subdivided into
+ghost zones and physical boundary zones, but thorn writers, in general, don't
+need to know about this.
+
+Note: When a routine declares that it writes the Interior, that variable is no
+longer valid in the exterior.
+
+Filling in of the Exterior: The exterior region is filled by a combination of
+synchronization and the calling of physical boundary routines when the routine
+about to be called (1) needs a variable to be defined everywhere, but (2) it is
+currently only valid in the interior.
+
+2. Boundary Routines
+
+The routines to register boundary conditions were modeled on the functions
+currently used by thorn Boundary. Differences are slight.
+
+  extern "C"
+  void Carpet_RegisterPhysicalBC(
+      const cGH *cctkGH,
+      boundary_function func,
+      const char *bc_name,
+      int before_sync);
+
+Apart from the Carpet_ prefix, the new thing to notice here is the last field,
+"before_sync" which is declared as an int but is actually a boolean (because I
+was not sure what the status was of supporting booleans).
+
+This variable specifies whether the given named routine runs before or after
+synchronization is performed.
+
+  extern "C"
+  void Carpet_SelectVarForBCI(
+      const cGH *cctkGH,
+      int faces,
+      int width,
+      int table_handle,
+      int var_index,
+      const char *bc_name);
+
+This routine has the same signature as the corresponding one in thorn Boundary.
+
+These routines are located in Carpet, however, because (1) Carpet needs to
+decided when they run and (2) Carpet should not depend on thorn Boundary.
+Alternatively, there could be handles in the flesh to access them.
+
+3. Interaction with MoL
+
+Perhaps the most problematic thorn for this new, automatic scheme is MoL,
+because MoL needs to interact with the schedule in a more dynamic way. For that
+reason, I have the routines:
+
+  #define WH_EVERYWHERE          0x7
+  #define WH_INTERIOR            0x4
+  #define WH_BOUNDARY            0x2 
+  #define WH_GHOSTS              0x1
+  #define WH_NOWHERE             0x0
+  extern "C" {
+    int Carpet_GetValidRegion(int vi,int tl);
+    void Carpet_SetValidRegion(int vi,int tl,int where_spec);
+    void Carpet_ManualSyncGF(const cGH *cctkGH,int vi);
+  }
+
+The first routine will get the current valid region as described by the WH
+mask, the second will set the valid region, and the third will cause a SYNC to
+occur for the variable if it is valid only in the interior (if it is valid
+everywhere, the call does nothing). Note that this interface does not support
+SYNC of any timelevel other than 0.
+
+Notice, however, that the Get/Set routines above take both take the timelevel
+as an argument. When Carpet cycles the timelevels, it also cycles the region
+about where the variable is valid (its where_spec) at the same time, and marks
+level 0 as invalid (i.e. valid nowhere).
+
+The current timelevel (i.e. timelevel 0) is made valid again by InitialCopy.
+Either that routine needs to be modified to use the above Get/Set routines, or
+a routine can be scheduled to run after it that will copy the where_spec from
+timelevel 1 to timelevel 0 for all variables with timelevels. That is currently
+done in thorn PresyncWave, though ideally it should be done in MoL.
+
+However, MoL might (and usually will) reduce the valid region of the timelevel
+0 variable from Everywhere to Interior. To implement this, PresyncWave
+schedules a routine to run after MoL_Add that will update the where_spec on
+every level 0 variable evovled by MoL to be the logical and of (1) the current
+level 0 where_spec for that variable, the level 1 where_spec for that variable,
+and the corresponding where_spec of the level 0 rhs variable. In simpler terms,
+if the rhsvariable is only updated in the interior, the corresponding variable
+will also be valid only in the interior. Again, this routine that runs after
+MoL_Add should ideally be moved to MoL.
+
+Other refactorings should probably occur. Output routines should probably call
+Carpet_ManualSyncGF if they write out the exterior region.
+
+4. Error conditions
+
+(1) Synchronizing a variable that is valid nowhere.

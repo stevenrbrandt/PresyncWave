@@ -1,6 +1,11 @@
 # Schedule definitions for thorn PresyncWave
 storage: rhs_vars[3], evo_vars[3], evo_divs
 
+# In this step, we register boundary conditions
+# with Carpet (not thorn Boundary). This new way
+# of doing things makes it possible for Carpet to
+# fill in the exterior of the variable at the
+# same time it performs a sync.
 schedule presync_registerboundary at CCTK_INITIAL
 {
   LANG: C
