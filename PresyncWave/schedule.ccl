@@ -26,6 +26,7 @@ schedule UpdateValidForMoLAdd in MoL_Step after MoL_Add
 schedule presync_wave_init at CCTK_POSTINITIAL
 {
   LANG: C
+  READS: Grid::coordinates(Everywhere)
   WRITES: PresyncWave::psi(Everywhere), PresyncWave::phi(Everywhere)
 } "initial condition"
 
