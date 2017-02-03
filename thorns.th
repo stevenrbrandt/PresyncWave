@@ -14,6 +14,7 @@
 !TYPE     = git
 !URL      = https://bitbucket.org/cactuscode/cactus.git
 !NAME     = flesh
+!REPO_BRANCH = presync
 !CHECKOUT = .clang-format CONTRIBUTORS COPYRIGHT doc lib Makefile src
 
 # Simulation Factory
