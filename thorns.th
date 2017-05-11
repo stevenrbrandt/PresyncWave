@@ -1,9 +1,10 @@
-# Component list for the Einstein Toolkit <http://einsteintoolkit.org/>
-# $Revision$
-# $Date$
-# $HeadURL$
+# This file was automatically generated using the GetComponents script.
 
 !CRL_VERSION = 1.0
+
+
+# Component list: thorns.th
+
 
 !DEFINE ROOT = CactusPre
 !DEFINE ARR  = $ROOT/arrangements
@@ -51,6 +52,7 @@ CactusBase/CoordBase
 CactusBase/IOUtil
 CactusBase/SymBase
 CactusBase/InitBase
+CactusBase/Time
 
 # CactusNumerical thorns
 !TARGET   = $ARR
