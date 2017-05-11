@@ -29,6 +29,126 @@ void Carpet_SelectGroupForBC(
 
 extern "C" void Boundary_RegisterPhysicalBC(CCTK_ARGUMENTS,boundary_function,const char *);
 
+// 1 = symmetric, -1 = antisymmetric
+// 1 = straddle: point is a grid point
+// 0 = straddle: point is between grid points.
+
+template<int sym,int straddle>
+void fun_blank(
+  const cGH *cctkGH,
+  int num_vars,
+  int *var_indices,
+  int *faces,
+  int *widths,
+  int *table_handles) {
+}
+
+template<int sym,int straddle>
+void fun_bf2(
+  const cGH *cctkGH,
+  int num_vars,
+  int *var_indices,
+  int *faces,
+  int *widths,
+  int *table_handles) {
+  _DECLARE_CCTK_ARGUMENTS;
+  for(int vi=0;vi<num_vars;vi++) {
+    assert(widths[vi] > 0);
+    int var_index = var_indices[vi];
+    std::cout << "BOUNDARY: " << CCTK_FullName(var_index) << std::endl;
+    for(int face=0;face<6;face++) {
+
+      if(!cctk_bbox[face])
+        continue; // we aren't on a physical boundary
+
+      int width = widths[vi];
+      assert(width > 0);
+      CCTK_REAL *var = (CCTK_REAL *)CCTK_VarDataPtrI(cctkGH,0,var_index);
+      if(face == 0) {
+        for(int k=0;k<cctk_lsh[2];k++) {
+          for(int j=0;j<cctk_lsh[1];j++) {
+            for(int i=0;i<width;i++) {
+              int i0 = i;
+              int i2 = 2*width-i+1-straddle;
+              if(j==0 && k==0) {
+                //std::cout << "i0=" << i0 << " i2=" << i2 << std::endl;
+              }
+              int cc0 = CCTK_GFINDEX3D(cctkGH,i0,j,k);
+              int cc2 = CCTK_GFINDEX3D(cctkGH,i2,j,k);
+              var[cc0] = sym*var[cc2];
+            }
+          }
+        }
+      } else if(face == 1) {
+        for(int k=0;k<cctk_lsh[2];k++) {
+          for(int j=0;j<cctk_lsh[1];j++) {
+            for(int i=0;i<width;i++) {
+              int i0 = cctk_lsh[0]-1-i;
+              int i2 = cctk_lsh[0]-2*width+i-2+straddle;
+              if(j==0 && k==0) {
+                //std::cout << "i0=" << i0 << " i2=" << i2 << std::endl;
+              }
+              int cc0 = CCTK_GFINDEX3D(cctkGH,i0,j,k);
+              int cc2 = CCTK_GFINDEX3D(cctkGH,i2,j,k);
+              var[cc0] = sym*var[cc2];
+            }
+          }
+        }
+      } else if(face == 2) {
+        for(int k=0;k<cctk_lsh[2];k++) {
+          for(int j=0;j<width;j++) {
+            for(int i=0;i<cctk_lsh[0];i++) {
+              int j0 = j;
+              int j2 = 2*width-j-straddle+1;
+              int cc0 = CCTK_GFINDEX3D(cctkGH,i,j0,k);
+              int cc2 = CCTK_GFINDEX3D(cctkGH,i,j2,k);
+              var[cc0] = sym*var[cc2];
+            }
+          }
+        }
+      } else if(face == 3) {
+        for(int k=0;k<cctk_lsh[2];k++) {
+          for(int j=0;j<width;j++) {
+            for(int i=0;i<cctk_lsh[0];i++) {
+              int j0 = cctk_lsh[1]-1-j;
+              int j2 = cctk_lsh[1]-2*width+j-2+straddle;
+              int cc0 = CCTK_GFINDEX3D(cctkGH,i,j0,k);
+              int cc2 = CCTK_GFINDEX3D(cctkGH,i,j2,k);
+              var[cc0] = sym*var[cc2];
+            }
+          }
+        }
+      } else if(face == 4) {
+        for(int k=0;k<width;k++) {
+          for(int j=0;j<cctk_lsh[1];j++) {
+            for(int i=0;i<cctk_lsh[0];i++) {
+              int k0 = k;
+              int k2 = 2*width-k-straddle+1;
+              int cc0 = CCTK_GFINDEX3D(cctkGH,i,j,k0);
+              int cc2 = CCTK_GFINDEX3D(cctkGH,i,j,k2);
+              var[cc0] = sym*var[cc2];
+            }
+          }
+        }
+      } else if(face == 5) {
+        for(int k=0;k<width;k++) {
+          for(int j=0;j<cctk_lsh[1];j++) {
+            for(int i=0;i<cctk_lsh[0];i++) {
+              int k0 = cctk_lsh[2]-1-k;
+              int k2 = cctk_lsh[2]-2*width+k-2+straddle;
+              int cc0 = CCTK_GFINDEX3D(cctkGH,i,j,k0);
+              int cc2 = CCTK_GFINDEX3D(cctkGH,i,j,k2);
+              var[cc0] = sym*var[cc2];
+            }
+          }
+        }
+      } else {
+        abort();
+      }
+    }
+  }
+}
+
 void fun_bf(
   const cGH *cctkGH,
   int num_vars,
@@ -40,6 +160,7 @@ void fun_bf(
   
   std::cout << "fun: num_vars=" << num_vars << std::endl;
   for(int vi=0;vi<num_vars;vi++) {
+    assert(widths[vi] > 0);
     int var_index = var_indices[vi];
     for(int face=0;face<6;face++) {
 
@@ -111,6 +232,15 @@ void fun_bf(
             assert(ci < max_index);
             assert(cc >= zero);
             assert(ci >= zero);
+            std::cout << " face=" << face;
+            std::cout << " var(" << ind[0] << "," << ind[1] << "," << ind[2] << ")";
+            std::cout << " var2(";
+            for(int i=0;i<3;i++) {
+              if(i != 0)   std::cout << ",";
+              if(dim == i) std::cout << 2*lo[dim]-ind[dim];
+              else         std::cout << ind[i];
+            }
+            std::cout << ")" << std::endl;
             var[cc] = var[ci]; // symmetry boundary condition
           }
         }
@@ -124,19 +254,32 @@ void presync_registerboundary(CCTK_ARGUMENTS)
 {
   _DECLARE_CCTK_ARGUMENTS
   DECLARE_CCTK_PARAMETERS
-  CCTK_INT ierr = 0, group, rhs;
+  CCTK_INT group, rhs;
 
   std::cout << "Register Boundary Conditions" << std::endl;
 
-  Carpet_RegisterPhysicalBC(cctkGH,fun_bf,"symmetry",1);
+  Carpet_RegisterPhysicalBC(cctkGH,fun_bf2<1,1>,"symmetry",1);
+  Carpet_RegisterPhysicalBC(cctkGH,fun_bf2<-1,1>,"antisymmetry",1);
+//  Carpet_RegisterPhysicalBC(cctkGH,fun_zero,"antisymmetry",1);
+  int w = 1;
 
   Carpet_SelectGroupForBC(cctkGH,
-    CCTK_ALL_FACES, 1,
-   -1 /* no table */, "PresyncWave::rhs_vars",
-   "symmetry");
+    CCTK_ALL_FACES, w,
+   -1 /* no table */, "PresyncWave::phi_g",
+   "antisymmetry");
 
   Carpet_SelectGroupForBC(cctkGH,
-    CCTK_ALL_FACES, 1,
-   -1 /* no table */, "PresyncWave::evo_vars",
-   "symmetry");
+    CCTK_ALL_FACES, w,
+   -1 /* no table */, "PresyncWave::phi_rhs_g",
+   "antisymmetry");
+
+  Carpet_SelectGroupForBC(cctkGH,
+    CCTK_ALL_FACES, w,
+   -1 /* no table */, "PresyncWave::psi_g",
+   "antisymmetry");
+
+  Carpet_SelectGroupForBC(cctkGH,
+    CCTK_ALL_FACES, w,
+   -1 /* no table */, "PresyncWave::psi_rhs_g",
+   "antisymmetry");
 }
