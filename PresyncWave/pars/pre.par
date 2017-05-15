@@ -12,10 +12,14 @@ CoordBase::xmin = -10
 CoordBase::xmax = 10
 CoordBase::ymin = -10
 CoordBase::ymax = 10
-CoordBase::zmin = -10
-CoordBase::zmax = 10
+CoordBase::zmin = 0
+CoordBase::zmax = 0
 CoordBase::dx = 0.25
 CoordBase::dy = 0.25
+CoordBase::boundary_size_z_lower = 0
+CoordBase::boundary_size_z_upper = 0
+CoordBase::boundary_shiftout_z_lower = 1
+CoordBase::boundary_shiftout_z_upper = 1
 
 Time::dtfac = 0.25
 
@@ -24,7 +28,7 @@ carpet::use_psync ="yes"
 Carpet::domain_from_coordbase = "yes"
 Carpet::ghost_size_x = 1
 Carpet::ghost_size_y = 1
-Carpet::ghost_size_z = 1
+Carpet::ghost_size_z = 0
 
 IO::out_dir = $parfile
 

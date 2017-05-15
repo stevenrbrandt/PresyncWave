@@ -95,9 +95,9 @@ void presync_derivatives(CCTK_ARGUMENTS)
   const int imax1=cctk_lsh[1] - cctk_nghostzones[1];
   const int imax2=cctk_lsh[2] - cctk_nghostzones[2];
   const int zero = CCTK_GFINDEX3D(cctkGH,0,0,0);
-  const int di = CCTK_GFINDEX3D(cctkGH,1,0,0) - zero;
-  const int dj = CCTK_GFINDEX3D(cctkGH,0,1,0) - zero;
-  const int dk = CCTK_GFINDEX3D(cctkGH,0,0,1) - zero;
+  const int di = (cctk_lsh[0]==1) ? 0:CCTK_GFINDEX3D(cctkGH,1,0,0) - zero;
+  const int dj = (cctk_lsh[1]==1) ? 0:CCTK_GFINDEX3D(cctkGH,0,1,0) - zero;
+  const int dk = (cctk_lsh[2]==1) ? 0:CCTK_GFINDEX3D(cctkGH,0,0,1) - zero;
   assert(!std::isnan(psi[zero]));
   #pragma omp parallel
   CCTK_LOOP3(calc_presync_derivs,
