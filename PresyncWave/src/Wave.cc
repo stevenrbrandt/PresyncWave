@@ -105,9 +105,9 @@ void presync_derivatives(CCTK_ARGUMENTS)
     cctk_ash[0],cctk_ash[1],cctk_ash[2])
   {
     int cc = CCTK_GFINDEX3D(cctkGH,i,j,k);
-    dxx_psi[cc] = (psi[cc+di]+psi[cc-di]-2.0*psi[cc])/(2.0*CCTK_DELTA_SPACE(0));
-    dyy_psi[cc] = (psi[cc+dj]+psi[cc-dj]-2.0*psi[cc])/(2.0*CCTK_DELTA_SPACE(1));
-    dzz_psi[cc] = (psi[cc+dk]+psi[cc-dk]-2.0*psi[cc])/(2.0*CCTK_DELTA_SPACE(2));
+    dxx_psi[cc] = (psi[cc+di]+psi[cc-di]-2.0*psi[cc])/(CCTK_DELTA_SPACE(0)*CCTK_DELTA_SPACE(0));
+    dyy_psi[cc] = (psi[cc+dj]+psi[cc-dj]-2.0*psi[cc])/(CCTK_DELTA_SPACE(1)*CCTK_DELTA_SPACE(1));
+    dzz_psi[cc] = (psi[cc+dk]+psi[cc-dk]-2.0*psi[cc])/(CCTK_DELTA_SPACE(2)*CCTK_DELTA_SPACE(2));
   }
   CCTK_ENDLOOP3(calc_presync_derivs);
 }

@@ -2,6 +2,8 @@
 implements: PresyncWave
 inherits: grid
 
+public:
+
 cctk_real rhs_vars type=GF timelevels=3
 {
   phi_rhs
