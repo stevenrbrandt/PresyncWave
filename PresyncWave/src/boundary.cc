@@ -2,6 +2,7 @@
 #include "cctk_Arguments.h"
 #include "cctk_Parameters.h"
 #include <iostream>
+#include <algorithm>
 
 typedef void (*boundary_function)(
   const cGH *cctkGH,
@@ -33,7 +34,7 @@ extern "C" void Boundary_RegisterPhysicalBC(CCTK_ARGUMENTS,boundary_function,con
 // 1 = straddle: point is a grid point
 // 0 = straddle: point is between grid points.
 
-template<int sym,int straddle>
+
 void fun_blank(
   const cGH *cctkGH,
   int num_vars,
@@ -41,6 +42,90 @@ void fun_blank(
   int *faces,
   int *widths,
   int *table_handles) {
+}
+
+void fun_stwave(
+  const cGH *cctkGH,
+  int num_vars,
+  int *var_indices,
+  int *faces,
+  int *widths,
+  int *table_handles) {
+  _DECLARE_CCTK_ARGUMENTS;
+
+  for(int vi=0;vi<num_vars;vi++) {
+    assert(widths[vi] > 0);
+    int var_index = var_indices[vi];
+    std::cout << "BOUNDARY: " << CCTK_FullName(var_index) << std::endl;
+    for(int face=0;face<6;face++) {
+
+      if(!cctk_bbox[face])
+        continue; // we aren't on a physical boundary
+
+/* These statements check for trivial dimensions with only one grid point.
+   While the code is full 3D, it can handle the special case of setting one or two
+   dimensions to one grid point as long as the initial conditions and par file are
+   valid. */
+      int faceValues[] = {0,1,2,3,4,5};
+      if (( std::find(faceValues,faceValues+2,face) != faceValues+2 ) && cctk_lsh[0] == 1) 
+        continue;
+
+      if (( std::find(faceValues+2,faceValues+4,face) != faceValues+4 ) && cctk_lsh[1] == 1) 
+        continue;
+      
+      if (( std::find(faceValues+4,faceValues+6,face) != faceValues+6 ) && cctk_lsh[2] == 1) 
+        continue;
+
+      int width = widths[vi];
+      assert(width > 0);
+      CCTK_REAL *var = (CCTK_REAL *)CCTK_VarDataPtrI(cctkGH,0,var_index);
+     if(face == 0) {
+        for(int k=0;k<cctk_lsh[2];k++) {
+          for(int j=0;j<cctk_lsh[1];j++) {
+            int cc0 = CCTK_GFINDEX3D(cctkGH,0,j,k);
+            var[cc0] = 0;
+          }
+        }
+      } else if(face == 1) {
+        for(int k=0;k<cctk_lsh[2];k++) {
+          for(int j=0;j<cctk_lsh[1];j++) {
+            int cc0 = CCTK_GFINDEX3D(cctkGH,cctk_lsh[0]-1,j,k);
+            var[cc0] = 0;
+          }
+        }
+      } else if(face == 2) {
+        for(int k=0;k<cctk_lsh[2];k++) {
+          for(int i=0;i<cctk_lsh[0];i++) {
+            int cc0 = CCTK_GFINDEX3D(cctkGH,i,0,k);
+            var[cc0] = 0;
+          }
+        }
+      } else if(face == 3) {
+        for(int k=0;k<cctk_lsh[2];k++) {
+          for(int i=0;i<cctk_lsh[0];i++) {
+            int cc0 = CCTK_GFINDEX3D(cctkGH,i,cctk_lsh[1]-1,k);
+            var[cc0] = 0;
+          }
+        }
+      } else if(face == 4) {
+        for(int j=0;j<cctk_lsh[1];j++) {
+          for(int i=0;i<cctk_lsh[0];i++) {
+            int cc0 = CCTK_GFINDEX3D(cctkGH,i,j,0);
+            var[cc0] = 0;
+          }
+        }
+      } else if(face == 5) {
+        for(int j=0;j<cctk_lsh[1];j++) {
+          for(int i=0;i<cctk_lsh[0];i++) {
+            int cc0 = CCTK_GFINDEX3D(cctkGH,i,j,cctk_lsh[2]-1);
+            var[cc0] = 0;
+          }
+        }
+      } else {
+        abort();
+      }
+    }
+  }
 }
 
 template<int sym,int straddle>
@@ -55,11 +140,25 @@ void fun_bf2(
   for(int vi=0;vi<num_vars;vi++) {
     assert(widths[vi] > 0);
     int var_index = var_indices[vi];
-    std::cout << "BOUNDARY: " << CCTK_FullName(var_index) << std::endl;
+    std::cout << "BOUNDARY START: " << CCTK_FullName(var_index) << std::endl;
     for(int face=0;face<6;face++) {
 
       if(!cctk_bbox[face])
         continue; // we aren't on a physical boundary
+
+/* These statements check for trivial dimensions with only one grid point.
+   While the code is full 3D, it can handle the special case of setting one or two
+   dimensions to one grid point as long as the initial conditions and par file are
+   valid. */
+      int faceValues[] = {0,1,2,3,4,5};
+      if (( std::find(faceValues,faceValues+2,face) != faceValues+2 ) && cctk_lsh[0] == 1) 
+        continue;
+
+      if (( std::find(faceValues+2,faceValues+4,face) != faceValues+4 ) && cctk_lsh[1] == 1) 
+        continue;
+      
+      if (( std::find(faceValues+4,faceValues+6,face) != faceValues+6 ) && cctk_lsh[2] == 1) 
+        continue;
 
       int width = widths[vi];
       assert(width > 0);
@@ -149,7 +248,7 @@ void fun_bf2(
   }
 }
 
-void fun_bf(
+/*void fun_bf(
   const cGH *cctkGH,
   int num_vars,
   int *var_indices,
@@ -247,39 +346,30 @@ void fun_bf(
       }
     }
   }
-}
+}*/
 
 extern "C"
 void presync_registerboundary(CCTK_ARGUMENTS)
 {
   _DECLARE_CCTK_ARGUMENTS
   DECLARE_CCTK_PARAMETERS
-  CCTK_INT group, rhs;
+//  CCTK_INT group, rhs;
 
   std::cout << "Register Boundary Conditions" << std::endl;
 
   Carpet_RegisterPhysicalBC(cctkGH,fun_bf2<1,1>,"symmetry",1);
   Carpet_RegisterPhysicalBC(cctkGH,fun_bf2<-1,1>,"antisymmetry",1);
-//  Carpet_RegisterPhysicalBC(cctkGH,fun_zero,"antisymmetry",1);
+  Carpet_RegisterPhysicalBC(cctkGH,fun_stwave,"zero",1);
+  Carpet_RegisterPhysicalBC(cctkGH,fun_blank,"blank",1);
   int w = 1;
 
   Carpet_SelectGroupForBC(cctkGH,
     CCTK_ALL_FACES, w,
-   -1 /* no table */, "PresyncWave::phi_g",
-   "antisymmetry");
+   -1 /* no table */, "PresyncWave::evo_vars",
+   "symmetry");
 
   Carpet_SelectGroupForBC(cctkGH,
     CCTK_ALL_FACES, w,
-   -1 /* no table */, "PresyncWave::phi_rhs_g",
-   "antisymmetry");
-
-  Carpet_SelectGroupForBC(cctkGH,
-    CCTK_ALL_FACES, w,
-   -1 /* no table */, "PresyncWave::psi_g",
-   "antisymmetry");
-
-  Carpet_SelectGroupForBC(cctkGH,
-    CCTK_ALL_FACES, w,
-   -1 /* no table */, "PresyncWave::psi_rhs_g",
-   "antisymmetry");
+   -1 /* no table */, "PresyncWave::rhs_vars",
+   "symmetry");
 }

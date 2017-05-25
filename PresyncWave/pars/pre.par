@@ -1,8 +1,8 @@
 ActiveThorns = "PresyncWave Boundary"
 ActiveThorns = "CoordBase Carpet CartGrid3D MoL SymBase"
-ActiveThorns = "CarpetIOASCII Time"
+ActiveThorns = "CarpetIOASCII Time Energy"
 
-cactus::cctk_itlast = 100
+cactus::cctk_itlast = 2500
 
 CartGrid3D::type = "coordbase"
 CartGrid3D::avoid_origin = "no"
@@ -14,8 +14,8 @@ CoordBase::ymin = -5
 CoordBase::ymax = 5
 CoordBase::zmin = 0
 CoordBase::zmax = 0
-CoordBase::dx = 0.1
-CoordBase::dy = 0.1
+CoordBase::dx = 0.2
+CoordBase::dy = 0.2
 CoordBase::boundary_size_z_lower = 0
 CoordBase::boundary_size_z_upper = 0
 CoordBase::boundary_shiftout_z_lower = 1
@@ -32,9 +32,10 @@ Carpet::ghost_size_z = 0
 
 IO::out_dir = $parfile
 
-IOASCII::out2D_every = 20
+IOASCII::out2D_every = 5
 IOASCII::out2D_xyplane_z = 0
 IOASCII::out2D_vars = "
+  Energy::energy
   PresyncWave::psi
   PresyncWave::phi
 "
