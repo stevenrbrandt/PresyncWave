@@ -9,21 +9,6 @@ extern "C" void Carpet_ApplyPhysicalBCs(const cGH *cctkGH);
 
 #define sq(X) (X)*(X)
 
-/*extern "C"
-void ready_step(CCTK_ARGUMENTS)
-{
-  DECLARE_CCTK_ARGUMENTS;
-  for(int k=0;k<cctk_lsh[2];k++) {
-    for(int j=0;j<cctk_lsh[1];j++) {
-      for(int i=0;i<cctk_lsh[0];i++) {
-        int cc = CCTK_GFINDEX3D(cctkGH,i,j,k);
-        //psi[cc] = psi_p[cc];
-        //phi[cc] = phi_p[cc];
-      }
-    }
-  }
-}*/
-
 extern "C"
 void presync_wave_init(CCTK_ARGUMENTS)
 {
@@ -36,10 +21,6 @@ void presync_wave_init(CCTK_ARGUMENTS)
   const int imax0=cctk_lsh[0];// - cctk_nghostzones[0];
   const int imax1=cctk_lsh[1];// - cctk_nghostzones[1];
   const int imax2=cctk_lsh[2];// - cctk_nghostzones[2];
-/*  const int zero = CCTK_GFINDEX3D(cctkGH,0,0,0);
-  const int di = CCTK_GFINDEX3D(cctkGH,1,0,0) - zero;
-  const int dj = CCTK_GFINDEX3D(cctkGH,0,1,0) - zero;
-  const int dk = CCTK_GFINDEX3D(cctkGH,0,0,1) - zero;*/
   CCTK_REAL x0 = x[CCTK_GFINDEX3D(cctkGH,cctk_lsh[0]/2,cctk_lsh[1]/2,cctk_lsh[2]/2)];
   CCTK_REAL y0 = x[CCTK_GFINDEX3D(cctkGH,cctk_lsh[0]/2,cctk_lsh[1]/2,cctk_lsh[2]/2)];
   #pragma omp parallel
@@ -76,10 +57,6 @@ void presync_wave_evolve(CCTK_ARGUMENTS)
   const int imax0=cctk_lsh[0] - cctk_nghostzones[0];
   const int imax1=cctk_lsh[1] - cctk_nghostzones[1];
   const int imax2=cctk_lsh[2] - cctk_nghostzones[2];
-/*  const int zero = CCTK_GFINDEX3D(cctkGH,0,0,0);
-  const int di = CCTK_GFINDEX3D(cctkGH,1,0,0) - zero;
-  const int dj = CCTK_GFINDEX3D(cctkGH,0,1,0) - zero;
-  const int dk = CCTK_GFINDEX3D(cctkGH,0,0,1) - zero;*/
   #pragma omp parallel
   CCTK_LOOP3(calc_presync_wave_evol,
     i,j,k, imin0,imin1,imin2, imax0,imax1,imax2,
