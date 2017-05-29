@@ -23,6 +23,11 @@ cctk_real evo_divs type=GF timelevels=1 tags='Prolongation="None"'
   dzz_psi
 }
 
+cctk_real wave_energy type=GF
+{
+  energy
+}
+
 CCTK_INT FUNCTION MoLRegisterEvolvedGroup(CCTK_INT IN EvolvedIndex, \
     CCTK_INT IN RHSIndex)
 REQUIRES FUNCTION MoLRegisterEvolvedGroup

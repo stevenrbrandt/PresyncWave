@@ -1,5 +1,5 @@
 # Schedule definitions for thorn PresyncWave
-storage: rhs_vars[3], evo_vars[3], evo_divs
+storage: rhs_vars[3], evo_vars[3], evo_divs, wave_energy
 
 # In this step, we register boundary conditions
 # with Carpet (not thorn Boundary). This new way
@@ -54,3 +54,10 @@ schedule presync_registervars in MoL_Register
   LANG: C
   OPTIONS: META
 }"Register funwave variables for MoL"
+
+schedule presync_energy in CCTK_ANALYSIS
+{
+  READS: PresyncWave::phi(Everywhere)
+  WRITES: PresyncWave::energy(Everywhere)
+  LANG: C
+} "Calculate energy"

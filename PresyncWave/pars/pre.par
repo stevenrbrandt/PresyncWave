@@ -1,6 +1,6 @@
 ActiveThorns = "PresyncWave Boundary"
 ActiveThorns = "CoordBase Carpet CartGrid3D MoL SymBase"
-ActiveThorns = "CarpetIOASCII Time Energy"
+ActiveThorns = "CarpetIOASCII Time"
 
 cactus::cctk_itlast = 2500
 
@@ -35,7 +35,7 @@ IO::out_dir = $parfile
 IOASCII::out2D_every = 5
 IOASCII::out2D_xyplane_z = 0
 IOASCII::out2D_vars = "
-  Energy::energy
+  PresyncWave::energy
   PresyncWave::psi
   PresyncWave::phi
 "
