@@ -28,9 +28,6 @@ void Carpet_SelectGroupForBC(
     const char *group_name,
     const char *bc_name);
 
-extern "C" void Boundary_RegisterPhysicalBC(CCTK_ARGUMENTS,boundary_function,const char *);
-
-
 void fun_stwave(
   const cGH *cctkGH,
   int num_vars,
@@ -250,10 +247,10 @@ void presync_registerboundary(CCTK_ARGUMENTS)
   Carpet_SelectGroupForBC(cctkGH,
     CCTK_ALL_FACES, w,
    -1 /* no table */, "PresyncWave::evo_vars",
-   "zero");
+   "symmetry");
 
   Carpet_SelectGroupForBC(cctkGH,
     CCTK_ALL_FACES, w,
    -1 /* no table */, "PresyncWave::rhs_vars",
-   "zero");
+   "symmetry");
 }
