@@ -1,11 +1,12 @@
 #include "cctk.h" 
 #include "cctk_Arguments.h"
+#include "cctk_Arguments_Checked.h"
 #include "cctk_Parameters.h"
+#include "iostream"
 
 void presync_energy(CCTK_ARGUMENTS)
 {
-
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_presync_energy;
   DECLARE_CCTK_PARAMETERS;
       
   const int imin0=cctk_nghostzones[0];
@@ -31,5 +32,4 @@ void presync_energy(CCTK_ARGUMENTS)
       psiy*psiy + psiz*psiz;
   }
   CCTK_ENDLOOP3(calc_energy);
-  
 }

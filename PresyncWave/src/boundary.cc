@@ -3,32 +3,9 @@
 #include "cctk_Parameters.h"
 #include <iostream>
 #include <algorithm>
+#include "PreSync.h"
 
-typedef void (*boundary_function)(
-  const cGH *cctkGH,
-  int num_vars,
-  int *var_indices,
-  int *faces,
-  int *widths,
-  int *table_handles);
-
-// From PreSync
-extern "C" void Carpet_RegisterPhysicalBC(
-    const cGH *cctkGH,
-    boundary_function func,
-    const char *bc_name,
-    int before);
-
-extern "C"
-void Carpet_SelectGroupForBC(
-    const cGH *cctkGH,
-    int faces,
-    int width,
-    int table_handle,
-    const char *group_name,
-    const char *bc_name);
-
-void fun_stwave(
+CCTK_INT fun_stwave(
   const cGH *cctkGH,
   int num_vars,
   int *var_indices,
@@ -40,7 +17,6 @@ void fun_stwave(
   for(int vi=0;vi<num_vars;vi++) {
     assert(widths[vi] > 0);
     int var_index = var_indices[vi];
-//    std::cout << "Applying Boundary Conditions to " << CCTK_FullName(var_index) << std::endl;
     for(int face=0;face<6;face++) {
 
       if(!cctk_bbox[face])
@@ -110,6 +86,7 @@ void fun_stwave(
       }
     }
   }
+  return 0;
 }
 
 // 1 = symmetric, -1 = antisymmetric
@@ -117,7 +94,7 @@ void fun_stwave(
 // 0 = straddle: point is between grid points.
 
 template<int sym,int straddle>
-void fun_bf2(
+CCTK_INT fun_bf2(
   const cGH *cctkGH,
   int num_vars,
   int *var_indices,
@@ -128,7 +105,6 @@ void fun_bf2(
   for(int vi=0;vi<num_vars;vi++) {
     assert(widths[vi] > 0);
     int var_index = var_indices[vi];
-//    std::cout << "Applying Boundary Conditions to " << CCTK_FullName(var_index) << std::endl;
     for(int face=0;face<6;face++) {
 
       if(!cctk_bbox[face])
@@ -228,29 +204,33 @@ void fun_bf2(
       }
     }
   }
+  return 0;
 }
 
 extern "C"
 void presync_registerboundary(CCTK_ARGUMENTS)
 {
-  _DECLARE_CCTK_ARGUMENTS
   DECLARE_CCTK_PARAMETERS
-//  CCTK_INT group, rhs;
 
   std::cout << "Register Boundary Conditions" << std::endl;
 
-  Carpet_RegisterPhysicalBC(cctkGH,fun_bf2<1,1>,"symmetry",1);
-  Carpet_RegisterPhysicalBC(cctkGH,fun_bf2<-1,1>,"antisymmetry",1);
-  Carpet_RegisterPhysicalBC(cctkGH,fun_stwave,"zero",1);
+  Boundary_RegisterPhysicalBC(cctkGH,(boundary_function)fun_bf2<1,1>,"symmetry");
+  Boundary_RegisterPhysicalBC(cctkGH,(boundary_function)fun_bf2<-1,1>,"antisymmetry");
+  Boundary_RegisterPhysicalBC(cctkGH,(boundary_function)fun_stwave,"zero");
   int w = 1;
 
-  Carpet_SelectGroupForBC(cctkGH,
+  Boundary_SelectGroupForBC(cctkGH,
     CCTK_ALL_FACES, w,
    -1 /* no table */, "PresyncWave::evo_vars",
    "symmetry");
 
-  Carpet_SelectGroupForBC(cctkGH,
+  Boundary_SelectGroupForBC(cctkGH,
     CCTK_ALL_FACES, w,
    -1 /* no table */, "PresyncWave::rhs_vars",
+   "symmetry");
+
+  Boundary_SelectGroupForBC(cctkGH,
+    CCTK_ALL_FACES, w,
+   -1 /* no table */, "PresyncWave::wave_energy",
    "symmetry");
 }

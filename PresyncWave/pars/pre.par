@@ -1,4 +1,4 @@
-ActiveThorns = "PresyncWave Boundary"
+ActiveThorns = "PresyncWave Boundary2"
 ActiveThorns = "CoordBase Carpet CartGrid3D MoL SymBase"
 ActiveThorns = "CarpetIOASCII Time"
 
@@ -23,7 +23,8 @@ CoordBase::boundary_shiftout_z_upper = 1
 
 Time::dtfac = 0.2
 
-carpet::use_psync ="yes"
+Carpet::use_psync = "yes"
+Carpet::psync_only = "yes"
 
 Carpet::domain_from_coordbase = "yes"
 Carpet::ghost_size_x = 1

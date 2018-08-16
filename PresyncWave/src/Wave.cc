@@ -1,5 +1,6 @@
 #include <cctk.h>
 #include <cctk_Arguments.h>
+#include <cctk_Arguments_Checked.h>
 #include <cctk_Parameters.h>
 #include <iostream>
 
@@ -12,7 +13,7 @@ extern "C" void Carpet_ApplyPhysicalBCs(const cGH *cctkGH);
 extern "C"
 void presync_wave_init(CCTK_ARGUMENTS)
 {
-  DECLARE_CCTK_ARGUMENTS
+  DECLARE_CCTK_ARGUMENTS_presync_wave_init
   DECLARE_CCTK_PARAMETERS
 
   const int imin0=0;//cctk_nghostzones[0];
@@ -48,7 +49,7 @@ void presync_wave_init(CCTK_ARGUMENTS)
 extern "C"
 void presync_wave_evolve(CCTK_ARGUMENTS)
 {
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_presync_wave_evolve;
   DECLARE_CCTK_PARAMETERS;
 
   const int imin0=cctk_nghostzones[0];
@@ -72,7 +73,7 @@ void presync_wave_evolve(CCTK_ARGUMENTS)
 extern "C"
 void presync_derivatives(CCTK_ARGUMENTS)
 {
-  DECLARE_CCTK_ARGUMENTS;
+  DECLARE_CCTK_ARGUMENTS_presync_derivatives;
   DECLARE_CCTK_PARAMETERS;
 
   const int imin0=cctk_nghostzones[0];
