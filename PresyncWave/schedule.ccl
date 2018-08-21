@@ -13,7 +13,7 @@ schedule presync_wave_evolve in MoL_CalcRHS
   LANG: C
   READS: PresyncWave::evo_divs(interior), evo_vars
   WRITES: PresyncWave::rhs_vars(interior)
-  SYNC: PresyncWave::evo_vars
+  SYNC: PresyncWave::rhs_vars
 } "Evolve loop"
 
 schedule presync_derivatives in MoL_CalcRHS before presync_wave_evolve
@@ -21,6 +21,7 @@ schedule presync_derivatives in MoL_CalcRHS before presync_wave_evolve
   LANG: C
   READS: PresyncWave::psi(everywhere)
   WRITES: PresyncWave::evo_divs(interior)
+  SYNC: PresyncWave::evo_divs
 } "Compute derivatives"
 
 schedule presync_registervars in MoL_Register
