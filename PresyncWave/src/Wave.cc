@@ -4,10 +4,6 @@
 #include <cctk_Parameters.h>
 #include <iostream>
 
-extern "C" void Boundary_ApplyPhysicalBCs(CCTK_ARGUMENTS);
-
-extern "C" void Carpet_ApplyPhysicalBCs(const cGH *cctkGH);
-
 #define sq(X) (X)*(X)
 
 extern "C"

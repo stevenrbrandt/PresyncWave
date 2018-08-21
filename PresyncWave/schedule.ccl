@@ -1,16 +1,6 @@
 # Schedule definitions for thorn PresyncWave
 storage: rhs_vars[3], evo_vars[3], evo_divs, wave_energy
 
-# In this step, we register boundary conditions
-# with Carpet (not thorn Boundary). This new way
-# of doing things makes it possible for Carpet to
-# fill in the exterior of the variable at the
-# same time it performs a sync.
-schedule presync_registerboundary at CCTK_INITIAL
-{
-  LANG: C
-} "register boundaries"
-
 schedule presync_wave_init at CCTK_POSTINITIAL
 {
   LANG: C
@@ -20,16 +10,17 @@ schedule presync_wave_init at CCTK_POSTINITIAL
 
 schedule presync_wave_evolve in MoL_CalcRHS
 {
+  LANG: C
   READS: PresyncWave::evo_divs(interior), evo_vars
   WRITES: PresyncWave::rhs_vars(interior)
-  LANG: C
+  SYNC: PresyncWave::evo_vars
 } "Evolve loop"
 
 schedule presync_derivatives in MoL_CalcRHS before presync_wave_evolve
 {
+  LANG: C
   READS: PresyncWave::psi(everywhere)
   WRITES: PresyncWave::evo_divs(interior)
-  LANG: C
 } "Compute derivatives"
 
 schedule presync_registervars in MoL_Register
@@ -38,16 +29,68 @@ schedule presync_registervars in MoL_Register
   OPTIONS: META
 }"Register funwave variables for MoL"
 
+#################################################
+##             Boundary Routines               ##
+#################################################
+
+# In this function, we register boundary conditions
+# with Carpet (not thorn Boundary). This new way
+# of doing things makes it possible for Carpet to
+# fill in the exterior of the variable at the
+# same time it performs a sync.
+if(CCTK_ParameterValInt("use_psync","Carpet") == 1) {
+  schedule presync_registerboundary in PreSync_Registration
+  {
+    LANG: C
+  } "register boundaries"
+
+  schedule presync_SelectBCs in PreSync_Selection
+  {
+    LANG: C
+  } "select boundary conditions"
+
+}
+
+if(CCTK_ParameterValInt("use_psync","Carpet") == 0) {
+  schedule group PSWave_Boundaries in MoL_CalcRHS after presync_wave_evolve
+  {
+  } "boundary condition group"
+
+  schedule group PSWave_Boundaries at POSTRESTRICT
+  {
+  } "boundary condition group"
+
+  schedule presync_registerboundary at CCTK_WRAGH
+  {
+    LANG: C
+  } "register boundaries"
+
+  schedule presync_SelectBCs in PSWave_Boundaries
+  {
+    LANG: C
+  } "select boundary conditions"
+
+  schedule GROUP ApplyBCs as PSWave_ApplyBCs in PSWave_Boundaries after presync_selectBCs
+  {
+  } "Apply boundary conditions"
+}
+
+#################################################
+##            Energy Calculations              ##
+#################################################
+
 schedule presync_energy in CCTK_ANALYSIS
 {
+  LANG: C
   READS: PresyncWave::evo_vars(everywhere)
   WRITES: PresyncWave::energy(interior)
-  LANG: C
+  SYNC: PresyncWave::wave_energy
 } "Calculate energy"
 
 schedule presync_energy in CCTK_POSTINITIAL after presync_wave_init
 {
+  LANG: C
   READS: PresyncWave::evo_vars(everywhere)
   WRITES: PresyncWave::energy(interior)
-  LANG: C
+  SYNC: PresyncWave::wave_energy
 } "Calculate energy"

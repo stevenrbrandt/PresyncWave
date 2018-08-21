@@ -1,9 +1,8 @@
 #include "cctk.h"
 #include "cctk_Arguments.h"
 #include "cctk_Parameters.h"
-#include <iostream>
 #include <algorithm>
-#include "PreSync.h"
+#include "PSWave.h"
 
 CCTK_INT fun_stwave(
   const cGH *cctkGH,
@@ -207,30 +206,31 @@ CCTK_INT fun_bf2(
   return 0;
 }
 
-extern "C"
 void presync_registerboundary(CCTK_ARGUMENTS)
 {
-  DECLARE_CCTK_PARAMETERS
-
-  std::cout << "Register Boundary Conditions" << std::endl;
 
   Boundary_RegisterPhysicalBC(cctkGH,(boundary_function)fun_bf2<1,1>,"symmetry");
   Boundary_RegisterPhysicalBC(cctkGH,(boundary_function)fun_bf2<-1,1>,"antisymmetry");
   Boundary_RegisterPhysicalBC(cctkGH,(boundary_function)fun_stwave,"zero");
+}
+
+void presync_SelectBCs(CCTK_ARGUMENTS)
+{
+  DECLARE_CCTK_PARAMETERS
   int w = 1;
 
   Boundary_SelectGroupForBC(cctkGH,
     CCTK_ALL_FACES, w,
    -1 /* no table */, "PresyncWave::evo_vars",
-   "symmetry");
+   BCtype);
 
-  Boundary_SelectGroupForBC(cctkGH,
-    CCTK_ALL_FACES, w,
-   -1 /* no table */, "PresyncWave::rhs_vars",
-   "symmetry");
+//  Boundary_SelectGroupForBC(cctkGH,
+//    CCTK_ALL_FACES, w,
+//   -1 /* no table */, "PresyncWave::rhs_vars",
+//   BCtype);
 
   Boundary_SelectGroupForBC(cctkGH,
     CCTK_ALL_FACES, w,
    -1 /* no table */, "PresyncWave::wave_energy",
-   "symmetry");
+   BCtype);
 }

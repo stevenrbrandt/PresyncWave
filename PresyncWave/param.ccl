@@ -1,1 +1,10 @@
 # Parameter definitions for thorn PresyncWave
+
+private:
+
+STRING BCtype "Boundary conditions for PresyncWave"
+{
+  "symmetry"
+  "antisymmetry"
+  "zero"
+} "zero"
