@@ -5,7 +5,8 @@ schedule presync_wave_init at CCTK_POSTINITIAL
 {
   LANG: C
   READS: Grid::coordinates(everywhere)
-  WRITES: PresyncWave::evo_vars(everywhere)
+  WRITES: PresyncWave::evo_vars(interior)
+  SYNC: PresyncWave::evo_vars
 } "initial condition"
 
 schedule presync_wave_evolve in MoL_CalcRHS
@@ -19,9 +20,8 @@ schedule presync_wave_evolve in MoL_CalcRHS
 schedule presync_derivatives in MoL_CalcRHS before presync_wave_evolve
 {
   LANG: C
-  READS: PresyncWave::psi(everywhere)
+  READS: PresyncWave::evo_vars(everywhere)
   WRITES: PresyncWave::evo_divs(interior)
-  SYNC: PresyncWave::evo_divs
 } "Compute derivatives"
 
 schedule presync_registervars in MoL_Register
@@ -53,7 +53,10 @@ if(CCTK_ParameterValInt("use_psync","Carpet") == 1) {
 }
 
 if(CCTK_ParameterValInt("use_psync","Carpet") == 0) {
-  schedule group PSWave_Boundaries in MoL_CalcRHS after presync_wave_evolve
+  schedule group PSWave_Boundaries in MoL_CalcRHS before presync_derivatives
+  {
+  } "boundary condition group"
+  schedule group PSWave_Boundaries in CCTK_ANALYSIS before presync_energy
   {
   } "boundary condition group"
 
@@ -81,14 +84,6 @@ if(CCTK_ParameterValInt("use_psync","Carpet") == 0) {
 #################################################
 
 schedule presync_energy in CCTK_ANALYSIS
-{
-  LANG: C
-  READS: PresyncWave::evo_vars(everywhere)
-  WRITES: PresyncWave::energy(interior)
-  SYNC: PresyncWave::wave_energy
-} "Calculate energy"
-
-schedule presync_energy in CCTK_POSTINITIAL after presync_wave_init
 {
   LANG: C
   READS: PresyncWave::evo_vars(everywhere)

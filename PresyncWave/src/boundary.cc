@@ -224,10 +224,6 @@ void presync_SelectBCs(CCTK_ARGUMENTS)
    -1 /* no table */, "PresyncWave::evo_vars",
    BCtype);
 
-//  Boundary_SelectGroupForBC(cctkGH,
-//    CCTK_ALL_FACES, w,
-//   -1 /* no table */, "PresyncWave::rhs_vars",
-//   BCtype);
 
   Boundary_SelectGroupForBC(cctkGH,
     CCTK_ALL_FACES, w,
