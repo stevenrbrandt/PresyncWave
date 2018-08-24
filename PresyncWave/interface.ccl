@@ -23,7 +23,7 @@ cctk_real evo_divs type=GF timelevels=1 tags='Prolongation="None"'
   dzz_psi
 }
 
-cctk_real wave_energy type=GF
+cctk_real wave_energy type=GF timelevels=3
 {
   energy
 }

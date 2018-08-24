@@ -1,5 +1,5 @@
 # Schedule definitions for thorn PresyncWave
-storage: rhs_vars[3], evo_vars[3], evo_divs, wave_energy
+storage: rhs_vars[3], evo_vars[3], evo_divs, wave_energy[3]
 
 schedule presync_wave_init at CCTK_POSTINITIAL
 {
