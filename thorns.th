@@ -9,13 +9,14 @@
 !DEFINE ROOT = CactusPre
 !DEFINE ARR  = $ROOT/arrangements
 !DEFINE COMPONENTLIST_TARGET = $ROOT/thornlists/
+!DEFINE BRANCH = presync
 
 # Cactus Flesh
 !TARGET   = $ROOT
 !TYPE     = git
 !URL      = https://bitbucket.org/cactuscode/cactus.git
+!REPO_BRANCH = $BRANCH
 !NAME     = flesh
-!REPO_BRANCH = presync
 !CHECKOUT = .clang-format CONTRIBUTORS COPYRIGHT doc lib Makefile src
 
 # Simulation Factory
@@ -25,12 +26,6 @@
 !REPO_PATH=$1
 !NAME     = simfactory2
 !CHECKOUT = ./simfactory
-
-# Example parameter files
-!TARGET   = $ROOT
-!TYPE     = git
-!URL      = https://bitbucket.org/einsteintoolkit/einsteinexamples.git
-!CHECKOUT = par
 
 # Various Cactus utilities
 !TARGET   = $ROOT
@@ -45,13 +40,14 @@
 !TYPE     = git
 !URL      = https://bitbucket.org/cactuscode/cactusbase.git
 !REPO_PATH= $2
+!REPO_BRANCH = $BRANCH
 !CHECKOUT =
 CactusBase/Boundary
 CactusBase/CartGrid3D
 CactusBase/CoordBase
+CactusBase/InitBase
 CactusBase/IOUtil
 CactusBase/SymBase
-CactusBase/InitBase
 CactusBase/Time
 
 # CactusNumerical thorns
@@ -59,6 +55,7 @@ CactusBase/Time
 !TYPE     = git
 !URL      = https://bitbucket.org/cactuscode/cactusnumerical.git
 !REPO_PATH= $2
+!REPO_BRANCH = $BRANCH
 !CHECKOUT =
 CactusNumerical/MoL
 
@@ -67,9 +64,9 @@ CactusNumerical/MoL
 !TYPE     = git
 !URL      = https://bitbucket.org/cactuscode/cactusutils.git
 !REPO_PATH= $2
-!CHECKOUT = 
-#DISABLED CactusUtils/Accelerator
-#DISABLED CactusUtils/OpenCLRunTime
+!REPO_BRANCH = $BRANCH
+!CHECKOUT =
+CactusUtils/Formaline
 CactusUtils/Vectors
 
 # Carpet, the AMR driver
@@ -77,32 +74,36 @@ CactusUtils/Vectors
 !TYPE     = git
 !URL      = https://bitbucket.org/eschnett/carpet.git
 !REPO_PATH= $2
-!REPO_BRANCH = presync
-!CHECKOUT = Carpet/doc
+!REPO_BRANCH = $BRANCH
+!CHECKOUT =
 Carpet/Carpet
 Carpet/CarpetIOASCII
+Carpet/CarpetIOBasic
 Carpet/CarpetLib
-Carpet/CycleClock
-Carpet/LoopControl
+Carpet/CarpetReduce
 Carpet/Timers
 
 # Additional Cactus thorns
 !TARGET   = $ARR
 !TYPE     = svn
-!URL      = https://svn.cactuscode.org/projects/$1/$2/trunk
-!CHECKOUT = 
-ExternalLibraries/hwloc
+!URL      = https://svn.cactuscode.org/projects/$1/$2/branches/ET_2018_02
+!CHECKOUT =
+#ExternalLibraries/hwloc
 ExternalLibraries/MPI
-#DISABLED ExternalLibraries/OpenBLAS
-#DISABLED ExternalLibraries/OpenCL
-#DISABLED ExternalLibraries/pciutils
-#DISABLED ExternalLibraries/PETSc
-ExternalLibraries/zlib
+#ExternalLibraries/zlib
 
 # Private thorns
 !TARGET   = $ARR
 !TYPE     = git
+!URL      = https://github.com/SamuelCupp/PreSync_TOV.git
+!REPO_PATH= $2
+!CHECKOUT =
+PreSync_TOV/Boundary2
+
+!TARGET   = $ARR
+!TYPE     = git
 !URL      = https://github.com/stevenrbrandt/PresyncWave.git
 !REPO_PATH= $2
+!REPO_BRANCH = tutorial
 !CHECKOUT =
 PresyncWave/PresyncWave
