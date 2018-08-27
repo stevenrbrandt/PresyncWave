@@ -4,24 +4,18 @@ storage: rhs_vars[3], evo_vars[3], evo_divs, wave_energy[3]
 schedule oldsync_wave_init at CCTK_POSTINITIAL
 {
   LANG: C
-  READS: Grid::coordinates(everywhere)
-  WRITES: OldWave::evo_vars(interior)
   SYNC: OldWave::evo_vars
 } "initial condition"
 
 schedule oldsync_wave_evolve in MoL_CalcRHS
 {
   LANG: C
-  READS: OldWave::evo_divs(interior), phi
-  WRITES: OldWave::rhs_vars(interior)
   SYNC: OldWave::rhs_vars
 } "Evolve loop"
 
 schedule oldsync_derivatives in MoL_CalcRHS before oldsync_wave_evolve
 {
   LANG: C
-  READS: OldWave::evo_vars(everywhere)
-  WRITES: OldWave::evo_divs(interior)
 } "Compute derivatives"
 
 schedule oldsync_registervars in MoL_Register
@@ -39,62 +33,43 @@ schedule oldsync_registervars in MoL_Register
 # of doing things makes it possible for Carpet to
 # fill in the exterior of the variable at the
 # same time it performs a sync.
-if(CCTK_ParameterValInt("use_psync","Carpet") == 1) {
-  schedule oldsync_registerboundary in PreSync_Registration
-  {
-    LANG: C
-  } "register boundaries"
+schedule group PSWave_Boundaries in MoL_CalcRHS before oldsync_derivatives
+{
+} "boundary condition group"
+schedule group PSWave_Boundaries in CCTK_ANALYSIS before oldsync_energy
+{
+} "boundary condition group"
 
-  schedule oldsync_evolve_SelectBCs in PreSync_Selection
-  {
-    LANG: C
-  } "select boundary conditions"
+schedule group PSWave_Boundaries at POSTRESTRICT
+{
+} "boundary condition group"
 
-  schedule oldsync_energy_SelectBCs in PreSync_Selection
-  {
-    LANG: C
-  } "select boundary conditions"
-}
+schedule oldsync_registerboundary at CCTK_WRAGH
+{
+  LANG: C
+} "register boundaries"
 
-if(CCTK_ParameterValInt("use_psync","Carpet") == 0) {
-  schedule group PSWave_Boundaries in MoL_CalcRHS before oldsync_derivatives
-  {
-  } "boundary condition group"
-  schedule group PSWave_Boundaries in CCTK_ANALYSIS before oldsync_energy
-  {
-  } "boundary condition group"
+schedule oldsync_evolve_SelectBCs in PSWave_Boundaries
+{
+  LANG: C
+} "select boundary conditions"
 
-  schedule group PSWave_Boundaries at POSTRESTRICT
-  {
-  } "boundary condition group"
+schedule GROUP ApplyBCs as PSWave_ApplyBCs in PSWave_Boundaries after oldsync_selectBCs
+{
+} "Apply boundary conditions"
 
-  schedule oldsync_registerboundary at CCTK_WRAGH
-  {
-    LANG: C
-  } "register boundaries"
+schedule group Energy_Boundary at CCTK_ANALYSIS after oldsync_energy
+{
+} "boundary condition group"
 
-  schedule oldsync_evolve_SelectBCs in PSWave_Boundaries
-  {
-    LANG: C
-  } "select boundary conditions"
+schedule oldsync_energy_SelectBCs in Energy_Boundary
+{
+LANG: C
+} "select boundary conditions"
 
-  schedule GROUP ApplyBCs as PSWave_ApplyBCs in PSWave_Boundaries after oldsync_selectBCs
-  {
-  } "Apply boundary conditions"
-
-  schedule group Energy_Boundary at CCTK_ANALYSIS after oldsync_energy
-  {
-  } "boundary condition group"
-
-  schedule oldsync_energy_SelectBCs in Energy_Boundary
-  {
-    LANG: C
-  } "select boundary conditions"
-
-  schedule GROUP ApplyBCs as Energy_ApplyBCs in Energy_Boundary after energy_SelectBCs
-  {
-  } "Apply boundary conditions"
-}
+schedule GROUP ApplyBCs as Energy_ApplyBCs in Energy_Boundary after energy_SelectBCs
+{
+} "Apply boundary conditions"
 
 #################################################
 ##            Energy Calculations              ##
@@ -103,7 +78,5 @@ if(CCTK_ParameterValInt("use_psync","Carpet") == 0) {
 schedule oldsync_energy at CCTK_ANALYSIS
 {
   LANG: C
-  READS: OldWave::evo_vars(everywhere)
-  WRITES: OldWave::energy(interior)
   SYNC: OldWave::wave_energy
 } "Calculate energy"

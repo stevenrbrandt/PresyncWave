@@ -23,10 +23,6 @@ CoordBase::boundary_shiftout_z_upper = 1
 
 Time::dtfac = 0.2
 
-Carpet::use_psync = "no"
-Carpet::psync_only = "no"
-Carpet::psync_error = yes
-
 Carpet::domain_from_coordbase = "yes"
 Carpet::ghost_size_x = 1
 Carpet::ghost_size_y = 1
