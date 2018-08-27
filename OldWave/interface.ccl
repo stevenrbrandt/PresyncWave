@@ -1,5 +1,5 @@
 # Interface definition for thorn OldWave
-implements: PresyncWave
+implements: OldWave
 inherits: grid
 
 public:

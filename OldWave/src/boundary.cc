@@ -4,7 +4,7 @@
 #include <algorithm>
 #include "PSWave.h"
 
-CCTK_INT fun_stwave(
+CCTK_INT oldwave_stwave(
   const cGH *cctkGH,
   int num_vars,
   int *var_indices,
@@ -93,7 +93,7 @@ CCTK_INT fun_stwave(
 // 0 = straddle: point is between grid points.
 
 template<int sym,int straddle>
-CCTK_INT fun_bf2(
+CCTK_INT oldwave_bf2(
   const cGH *cctkGH,
   int num_vars,
   int *var_indices,
@@ -206,29 +206,29 @@ CCTK_INT fun_bf2(
   return 0;
 }
 
-void presync_registerboundary(CCTK_ARGUMENTS)
+void oldsync_registerboundary(CCTK_ARGUMENTS)
 {
-  Boundary_RegisterPhysicalBC(cctkGH,(phys_bc_fn_ptr)&fun_bf2<1,1>,"symmetry");
-  Boundary_RegisterPhysicalBC(cctkGH,(phys_bc_fn_ptr)&fun_bf2<-1,1>,"antisymmetry");
-  Boundary_RegisterPhysicalBC(cctkGH,(phys_bc_fn_ptr)&fun_stwave,"zero");
+  Boundary_RegisterPhysicalBC(cctkGH,(boundary_function)oldwave_bf2<1,1>,"symmetry");
+  Boundary_RegisterPhysicalBC(cctkGH,(boundary_function)oldwave_bf2<-1,1>,"antisymmetry");
+  Boundary_RegisterPhysicalBC(cctkGH,(boundary_function)oldwave_stwave,"zero");
 }
 
-void presync_SelectBCs(CCTK_ARGUMENTS)
+void oldsync_evolve_SelectBCs(CCTK_ARGUMENTS)
 {
   DECLARE_CCTK_PARAMETERS
 
   Boundary_SelectGroupForBC(cctkGH,
     CCTK_ALL_FACES, 1,
-   -1 /* no table */, "PresyncWave::evo_vars",
+   -1 /* no table */, "OldWave::evo_vars",
    BCtype);
 }
 
-void energy_SelectBCs(CCTK_ARGUMENTS)
+void oldsync_energy_SelectBCs(CCTK_ARGUMENTS)
 {
   DECLARE_CCTK_PARAMETERS
 
   Boundary_SelectGroupForBC(cctkGH,
     CCTK_ALL_FACES, 1,
-   -1 /* no table */, "PresyncWave::wave_energy",
+   -1 /* no table */, "OldWave::wave_energy",
    BCtype);
 }

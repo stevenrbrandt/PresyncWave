@@ -4,14 +4,13 @@
 #include "cctk_Parameters.h"
 #include <iostream>
 
-extern "C"
 void presync_registervars (CCTK_ARGUMENTS)
 {
   DECLARE_CCTK_ARGUMENTS_presync_registervars
   DECLARE_CCTK_PARAMETERS
   CCTK_INT ierr = 0, group, rhs;
 
-  std::cout << "Register" << std::endl;
+  std::cout << "Register PresyncWave MoL" << std::endl;
 
   rhs = CCTK_GroupIndex ("PresyncWave::rhs_vars");
   group = CCTK_GroupIndex ("PresyncWave::evo_vars");

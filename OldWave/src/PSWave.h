@@ -1,9 +1,7 @@
 #ifndef _PSWave_H_
 #define _PSWave_H_
 
-typedef CCTK_INT (*phys_bc_fn_ptr)(CCTK_POINTER_TO_CONST, const CCTK_INT,
-                                   const CCTK_INT *, const CCTK_INT *,
-                                   const CCTK_INT *, const CCTK_INT *);
+#include "PreSync.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -1,19 +1,19 @@
 #include "cctk.h"
 #include "cctk_Arguments.h"
+#include "cctk_Arguments_Checked.h"
 #include "cctk_Parameters.h"
 #include <iostream>
 
-extern "C"
-void presync_registervars (CCTK_ARGUMENTS)
+void oldsync_registervars (CCTK_ARGUMENTS)
 {
-  DECLARE_CCTK_ARGUMENTS
+  DECLARE_CCTK_ARGUMENTS_oldsync_registervars
   DECLARE_CCTK_PARAMETERS
   CCTK_INT ierr = 0, group, rhs;
 
   std::cout << "Register" << std::endl;
 
-  rhs = CCTK_GroupIndex ("PresyncWave::rhs_vars");
-  group = CCTK_GroupIndex ("PresyncWave::evo_vars");
+  rhs = CCTK_GroupIndex ("OldWave::rhs_vars");
+  group = CCTK_GroupIndex ("OldWave::evo_vars");
 
   if (CCTK_IsFunctionAliased ("MoLRegisterEvolvedGroup"))
   {

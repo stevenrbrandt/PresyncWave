@@ -1,24 +1,30 @@
 # Schedule definitions for thorn OldWave
 storage: rhs_vars[3], evo_vars[3], evo_divs, wave_energy[3]
 
-schedule presync_wave_init at CCTK_POSTINITIAL
+schedule oldsync_wave_init at CCTK_POSTINITIAL
 {
   LANG: C
-  SYNC: PresyncWave::evo_vars
+  READS: Grid::coordinates(everywhere)
+  WRITES: OldWave::evo_vars(interior)
+  SYNC: OldWave::evo_vars
 } "initial condition"
 
-schedule presync_wave_evolve in MoL_CalcRHS
+schedule oldsync_wave_evolve in MoL_CalcRHS
 {
   LANG: C
-  SYNC: PresyncWave::rhs_vars
+  READS: OldWave::evo_divs(interior), phi
+  WRITES: OldWave::rhs_vars(interior)
+  SYNC: OldWave::rhs_vars
 } "Evolve loop"
 
-schedule presync_derivatives in MoL_CalcRHS before presync_wave_evolve
+schedule oldsync_derivatives in MoL_CalcRHS before oldsync_wave_evolve
 {
   LANG: C
+  READS: OldWave::evo_vars(everywhere)
+  WRITES: OldWave::evo_divs(interior)
 } "Compute derivatives"
 
-schedule presync_registervars in MoL_Register
+schedule oldsync_registervars in MoL_Register
 {
   LANG: C
   OPTIONS: META
@@ -28,46 +34,76 @@ schedule presync_registervars in MoL_Register
 ##             Boundary Routines               ##
 #################################################
 
-schedule group PSWave_Boundaries in MoL_CalcRHS before presync_derivatives
-{
-} "boundary condition group"
-schedule group PSWave_Boundaries in CCTK_ANALYSIS before presync_energy
-{
-} "boundary condition group"
+# In this function, we register boundary conditions
+# with Carpet (not thorn Boundary). This new way
+# of doing things makes it possible for Carpet to
+# fill in the exterior of the variable at the
+# same time it performs a sync.
+if(CCTK_ParameterValInt("use_psync","Carpet") == 1) {
+  schedule oldsync_registerboundary in PreSync_Registration
+  {
+    LANG: C
+  } "register boundaries"
 
-schedule presync_registerboundary at CCTK_WRAGH
-{
-  LANG: C
-} "register boundaries"
+  schedule oldsync_evolve_SelectBCs in PreSync_Selection
+  {
+    LANG: C
+  } "select boundary conditions"
 
-schedule presync_SelectBCs in PSWave_Boundaries
-{
-  LANG: C
-} "select boundary conditions"
+  schedule oldsync_energy_SelectBCs in PreSync_Selection
+  {
+    LANG: C
+  } "select boundary conditions"
+}
 
-schedule GROUP ApplyBCs as PSWave_ApplyBCs in PSWave_Boundaries after presync_selectBCs
-{
-} "Apply boundary conditions"
+if(CCTK_ParameterValInt("use_psync","Carpet") == 0) {
+  schedule group PSWave_Boundaries in MoL_CalcRHS before oldsync_derivatives
+  {
+  } "boundary condition group"
+  schedule group PSWave_Boundaries in CCTK_ANALYSIS before oldsync_energy
+  {
+  } "boundary condition group"
 
-schedule group Energy_Boundary at CCTK_ANALYSIS after presync_energy
-{
-} "boundary condition group"
+  schedule group PSWave_Boundaries at POSTRESTRICT
+  {
+  } "boundary condition group"
 
-schedule energy_SelectBCs in Energy_Boundary
-{
-  LANG: C
-} "select boundary conditions"
+  schedule oldsync_registerboundary at CCTK_WRAGH
+  {
+    LANG: C
+  } "register boundaries"
 
-schedule GROUP ApplyBCs as Energy_ApplyBCs in Energy_Boundary after energy_SelectBCs
-{
-} "Apply boundary conditions"
+  schedule oldsync_evolve_SelectBCs in PSWave_Boundaries
+  {
+    LANG: C
+  } "select boundary conditions"
+
+  schedule GROUP ApplyBCs as PSWave_ApplyBCs in PSWave_Boundaries after oldsync_selectBCs
+  {
+  } "Apply boundary conditions"
+
+  schedule group Energy_Boundary at CCTK_ANALYSIS after oldsync_energy
+  {
+  } "boundary condition group"
+
+  schedule oldsync_energy_SelectBCs in Energy_Boundary
+  {
+    LANG: C
+  } "select boundary conditions"
+
+  schedule GROUP ApplyBCs as Energy_ApplyBCs in Energy_Boundary after energy_SelectBCs
+  {
+  } "Apply boundary conditions"
+}
 
 #################################################
 ##            Energy Calculations              ##
 #################################################
 
-schedule presync_energy at CCTK_ANALYSIS
+schedule oldsync_energy at CCTK_ANALYSIS
 {
   LANG: C
-  SYNC: PresyncWave::wave_energy
+  READS: OldWave::evo_vars(everywhere)
+  WRITES: OldWave::energy(interior)
+  SYNC: OldWave::wave_energy
 } "Calculate energy"

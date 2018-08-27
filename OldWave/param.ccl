@@ -2,7 +2,7 @@
 
 private:
 
-STRING BCtype "Boundary conditions for PresyncWave"
+STRING BCtype "Boundary conditions for OldWave"
 {
   "symmetry"
   "antisymmetry"
