@@ -1,12 +1,8 @@
 #include "cctk.h"
-#include "cctk_Arguments.h"
-#include "cctk_Parameters.h"
 #include <iostream>
 
 void oldsync_registervars (CCTK_ARGUMENTS)
 {
-  DECLARE_CCTK_ARGUMENTS
-  DECLARE_CCTK_PARAMETERS
   CCTK_INT ierr = 0, group, rhs;
 
   std::cout << "Register" << std::endl;

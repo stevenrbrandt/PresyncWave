@@ -4,7 +4,7 @@ storage: rhs_vars[3], evo_vars[3], evo_divs, wave_energy[3]
 schedule presync_wave_init at CCTK_POSTINITIAL
 {
   LANG: C
-  READS: Grid::coordinates(interior)
+  READS: Grid::x(interior), y
   WRITES: PresyncWave::evo_vars(interior)
   SYNC: PresyncWave::evo_vars
 } "initial condition"
@@ -20,7 +20,7 @@ schedule presync_wave_evolve in MoL_CalcRHS
 schedule presync_derivatives in MoL_CalcRHS before presync_wave_evolve
 {
   LANG: C
-  READS: PresyncWave::evo_vars(everywhere)
+  READS: PresyncWave::psi(everywhere)
   WRITES: PresyncWave::evo_divs(interior)
 } "Compute derivatives"
 
