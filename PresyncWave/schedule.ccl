@@ -4,7 +4,7 @@ storage: rhs_vars[3], evo_vars[3], evo_divs, wave_energy[3]
 schedule presync_wave_init at CCTK_POSTINITIAL
 {
   LANG: C
-  READS: Grid::coordinates(everywhere)
+  READS: Grid::coordinates(interior)
   WRITES: PresyncWave::evo_vars(interior)
   SYNC: PresyncWave::evo_vars
 } "initial condition"
