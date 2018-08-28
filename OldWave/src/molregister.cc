@@ -5,8 +5,6 @@ void oldsync_registervars (CCTK_ARGUMENTS)
 {
   CCTK_INT ierr = 0, group, rhs;
 
-  std::cout << "Register" << std::endl;
-
   rhs = CCTK_GroupIndex ("OldWave::rhs_vars");
   group = CCTK_GroupIndex ("OldWave::evo_vars");
 
