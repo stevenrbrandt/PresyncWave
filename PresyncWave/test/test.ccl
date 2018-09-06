@@ -4,3 +4,9 @@ TEST presync
 TEST oldsync
 {
 }
+TEST oldreflection
+{
+}
+TEST newreflection
+{
+}
